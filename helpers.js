@@ -8,7 +8,7 @@
 ------------------------- */
 
 export const $ = (selector, scope = document) =>
-  scope.querySelector(selector);
+  new DOMWrapper(scope.querySelector(selector));
 
 export const $$ = (selector, scope = document) =>
   Array.from(scope.querySelectorAll(selector));
@@ -187,3 +187,167 @@ export const request = async (url, options = {}) => {
 
   return res.text();
 };
+
+
+/* -------------------------
+   Chainable DOM Wrapper
+------------------------- */
+
+export class DOMWrapper {
+  constructor(el) {
+    this.el = el;
+  }
+
+  on(event, handler, options) {
+    if (!this.el) return this;
+    on(this.el, event, handler, options);
+    return this;
+  }
+
+  off(event, handler, options) {
+    if (!this.el) return this;
+    off(this.el, event, handler, options);
+    return this;
+  }
+
+  once(event, handler) {
+    if (!this.el) return this;
+    once(this.el, event, handler);
+    return this;
+  }
+
+  delegate(selector, event, handler) {
+    if (!this.el) return this;
+    delegate(this.el, selector, event, handler);
+    return this;
+  }
+
+  addClass(...classes) {
+    if (!this.el) return this;
+    addClass(this.el, ...classes);
+    return this;
+  }
+
+  removeClass(...classes) {
+    if (!this.el) return this;
+    removeClass(this.el, ...classes);
+    return this;
+  }
+
+  toggleClass(className, force) {
+    if (!this.el) return this;
+    toggleClass(this.el, className, force);
+    return this;
+  }
+
+  hasClass(className) {
+    if (!this.el) return false;
+    return hasClass(this.el, className);
+  }
+
+  attr(name, value) {
+    if (!this.el) return value === undefined ? undefined : this;
+    if (value === undefined) return attr(this.el, name);
+    attr(this.el, name, value);
+    return this;
+  }
+
+  removeAttr(name) {
+    if (!this.el) return this;
+    removeAttr(this.el, name);
+    return this;
+  }
+
+  data(key, value) {
+    if (!this.el) return value === undefined ? undefined : this;
+    if (value === undefined) return data(this.el, key);
+    data(this.el, key, value);
+    return this;
+  }
+
+  css(styles) {
+    if (!this.el) return this;
+    css(this.el, styles);
+    return this;
+  }
+
+  getStyle(prop) {
+    if (!this.el) return undefined;
+    return getStyle(this.el, prop);
+  }
+
+  show() {
+    if (!this.el) return this;
+    show(this.el);
+    return this;
+  }
+
+  hide() {
+    if (!this.el) return this;
+    hide(this.el);
+    return this;
+  }
+
+  html(value) {
+    if (!this.el) return value === undefined ? undefined : this;
+    if (value === undefined) return html(this.el);
+    html(this.el, value);
+    return this;
+  }
+
+  text(value) {
+    if (!this.el) return value === undefined ? undefined : this;
+    if (value === undefined) return text(this.el);
+    text(this.el, value);
+    return this;
+  }
+
+  empty() {
+    if (!this.el) return this;
+    empty(this.el);
+    return this;
+  }
+
+  append(child) {
+    if (!this.el) return this;
+    append(this.el, child);
+    return this;
+  }
+
+  prepend(child) {
+    if (!this.el) return this;
+    prepend(this.el, child);
+    return this;
+  }
+
+  remove() {
+    if (!this.el) return this;
+    remove(this.el);
+    return this;
+  }
+
+  parent() {
+    if (!this.el) return this;
+    return new DOMWrapper(parent(this.el));
+  }
+
+  children() {
+    if (!this.el) return [];
+    return children(this.el);
+  }
+
+  next() {
+    if (!this.el) return this;
+    return new DOMWrapper(next(this.el));
+  }
+
+  prev() {
+    if (!this.el) return this;
+    return new DOMWrapper(prev(this.el));
+  }
+
+  closest(selector) {
+    if (!this.el) return this;
+    return new DOMWrapper(closest(this.el, selector));
+  }
+}
