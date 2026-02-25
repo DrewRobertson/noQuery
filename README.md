@@ -21,16 +21,46 @@ All helpers are attached to `window` and available as globals:
 <script>
   ready(() => {
     const btn = $('#my-button');
-    on(btn, 'click', () => console.log('clicked'));
+    btn.on('click', () => console.log('clicked'));
   });
 </script>
+```
+
+## Chaining
+
+`$` returns a `DOMWrapper` instance, so all helpers can be chained directly on the result:
+
+```js
+$('#my-button')
+  .addClass('active')
+  .attr('disabled', 'true')
+  .on('click', () => console.log('clicked'));
+```
+
+The underlying DOM element is always accessible via `.el`:
+
+```js
+const wrapper = $('#my-button');
+console.log(wrapper.el); // HTMLButtonElement
+```
+
+All standalone helpers also accept a `DOMWrapper` in place of a raw element, so both styles work interchangeably:
+
+```js
+const btn = $('#my-button');
+
+// Chained style
+btn.on('click', () => console.log('clicked'));
+
+// Standalone style — works with a DOMWrapper or a raw element
+on(btn, 'click', () => console.log('clicked'));
 ```
 
 ## Helpers
 
 | Helper | Description |
 |---|---|
-| `$(selector, scope?)` | `querySelector` shorthand |
+| `$(selector, scope?)` | `querySelector` shorthand — returns a chainable `DOMWrapper` |
 | `$$(selector, scope?)` | `querySelectorAll` → Array |
 | `ready(fn)` | Run `fn` when the DOM is ready |
 | `on(el, event, handler, options?)` | Add event listener |

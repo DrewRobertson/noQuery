@@ -11,7 +11,7 @@
   ------------------------- */
 
   global.$ = (selector, scope = document) =>
-    scope.querySelector(selector);
+    new DOMWrapper(scope.querySelector(selector));
 
   global.$$ = (selector, scope = document) =>
     Array.from(scope.querySelectorAll(selector));
@@ -32,15 +32,16 @@
   ------------------------- */
 
   global.on = (el, event, handler, options) =>
-    el.addEventListener(event, handler, options);
+    unwrap(el).addEventListener(event, handler, options);
 
   global.off = (el, event, handler, options) =>
-    el.removeEventListener(event, handler, options);
+    unwrap(el).removeEventListener(event, handler, options);
 
   global.once = (el, event, handler) =>
-    el.addEventListener(event, handler, { once: true });
+    unwrap(el).addEventListener(event, handler, { once: true });
 
   global.delegate = (parent, selector, event, handler) => {
+    parent = unwrap(parent);
     parent.addEventListener(event, (e) => {
       const target = e.target.closest(selector);
       if (target && parent.contains(target)) {
@@ -55,16 +56,16 @@
   ------------------------- */
 
   global.addClass = (el, ...classes) =>
-    el.classList.add(...classes);
+    unwrap(el).classList.add(...classes);
 
   global.removeClass = (el, ...classes) =>
-    el.classList.remove(...classes);
+    unwrap(el).classList.remove(...classes);
 
   global.toggleClass = (el, className, force) =>
-    el.classList.toggle(className, force);
+    unwrap(el).classList.toggle(className, force);
 
   global.hasClass = (el, className) =>
-    el.classList.contains(className);
+    unwrap(el).classList.contains(className);
 
 
   /* -------------------------
@@ -72,14 +73,16 @@
   ------------------------- */
 
   global.attr = (el, name, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.getAttribute(name);
     el.setAttribute(name, value);
   };
 
   global.removeAttr = (el, name) =>
-    el.removeAttribute(name);
+    unwrap(el).removeAttribute(name);
 
   global.data = (el, key, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.dataset[key];
     el.dataset[key] = value;
   };
@@ -90,16 +93,16 @@
   ------------------------- */
 
   global.css = (el, styles) =>
-    Object.assign(el.style, styles);
+    Object.assign(unwrap(el).style, styles);
 
   global.getStyle = (el, prop) =>
-    getComputedStyle(el)[prop];
+    getComputedStyle(unwrap(el))[prop];
 
   global.show = (el) =>
-    (el.style.display = '');
+    (unwrap(el).style.display = '');
 
   global.hide = (el) =>
-    (el.style.display = 'none');
+    (unwrap(el).style.display = 'none');
 
 
   /* -------------------------
@@ -107,17 +110,19 @@
   ------------------------- */
 
   global.html = (el, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.innerHTML;
     el.innerHTML = value;
   };
 
   global.text = (el, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.textContent;
     el.textContent = value;
   };
 
   global.empty = (el) =>
-    el.replaceChildren();
+    unwrap(el).replaceChildren();
 
 
   /* -------------------------
@@ -125,13 +130,13 @@
   ------------------------- */
 
   global.append = (el, child) =>
-    el.append(child);
+    unwrap(el).append(unwrap(child));
 
   global.prepend = (el, child) =>
-    el.prepend(child);
+    unwrap(el).prepend(unwrap(child));
 
   global.remove = (el) =>
-    el.remove();
+    unwrap(el).remove();
 
   global.create = (tag, options = {}) => {
     const el = document.createElement(tag);
@@ -145,19 +150,19 @@
   ------------------------- */
 
   global.parent = (el) =>
-    el.parentElement;
+    unwrap(el).parentElement;
 
   global.children = (el) =>
-    Array.from(el.children);
+    Array.from(unwrap(el).children);
 
   global.next = (el) =>
-    el.nextElementSibling;
+    unwrap(el).nextElementSibling;
 
   global.prev = (el) =>
-    el.previousElementSibling;
+    unwrap(el).previousElementSibling;
 
   global.closest = (el, selector) =>
-    el.closest(selector);
+    unwrap(el).closest(selector);
 
 
   /* -------------------------
@@ -165,7 +170,7 @@
   ------------------------- */
 
   global.serialize = (form) =>
-    Object.fromEntries(new FormData(form).entries());
+    Object.fromEntries(new FormData(unwrap(form)).entries());
 
 
   /* -------------------------
@@ -190,5 +195,171 @@
 
     return res.text();
   };
+
+
+  /* -------------------------
+     Chainable DOM Wrapper
+  ------------------------- */
+
+  const unwrap = (el) => (el instanceof DOMWrapper) ? el.el : el;
+
+  class DOMWrapper {
+    constructor(el) {
+      this.el = el;
+    }
+
+    on(event, handler, options) {
+      if (!this.el) return this;
+      global.on(this.el, event, handler, options);
+      return this;
+    }
+
+    off(event, handler, options) {
+      if (!this.el) return this;
+      global.off(this.el, event, handler, options);
+      return this;
+    }
+
+    once(event, handler) {
+      if (!this.el) return this;
+      global.once(this.el, event, handler);
+      return this;
+    }
+
+    delegate(selector, event, handler) {
+      if (!this.el) return this;
+      global.delegate(this.el, selector, event, handler);
+      return this;
+    }
+
+    addClass(...classes) {
+      if (!this.el) return this;
+      global.addClass(this.el, ...classes);
+      return this;
+    }
+
+    removeClass(...classes) {
+      if (!this.el) return this;
+      global.removeClass(this.el, ...classes);
+      return this;
+    }
+
+    toggleClass(className, force) {
+      if (!this.el) return this;
+      global.toggleClass(this.el, className, force);
+      return this;
+    }
+
+    hasClass(className) {
+      if (!this.el) return false;
+      return global.hasClass(this.el, className);
+    }
+
+    attr(name, value) {
+      if (!this.el) return value === undefined ? undefined : this;
+      if (value === undefined) return global.attr(this.el, name);
+      global.attr(this.el, name, value);
+      return this;
+    }
+
+    removeAttr(name) {
+      if (!this.el) return this;
+      global.removeAttr(this.el, name);
+      return this;
+    }
+
+    data(key, value) {
+      if (!this.el) return value === undefined ? undefined : this;
+      if (value === undefined) return global.data(this.el, key);
+      global.data(this.el, key, value);
+      return this;
+    }
+
+    css(styles) {
+      if (!this.el) return this;
+      global.css(this.el, styles);
+      return this;
+    }
+
+    getStyle(prop) {
+      if (!this.el) return undefined;
+      return global.getStyle(this.el, prop);
+    }
+
+    show() {
+      if (!this.el) return this;
+      global.show(this.el);
+      return this;
+    }
+
+    hide() {
+      if (!this.el) return this;
+      global.hide(this.el);
+      return this;
+    }
+
+    html(value) {
+      if (!this.el) return value === undefined ? undefined : this;
+      if (value === undefined) return global.html(this.el);
+      global.html(this.el, value);
+      return this;
+    }
+
+    text(value) {
+      if (!this.el) return value === undefined ? undefined : this;
+      if (value === undefined) return global.text(this.el);
+      global.text(this.el, value);
+      return this;
+    }
+
+    empty() {
+      if (!this.el) return this;
+      global.empty(this.el);
+      return this;
+    }
+
+    append(child) {
+      if (!this.el) return this;
+      global.append(this.el, child);
+      return this;
+    }
+
+    prepend(child) {
+      if (!this.el) return this;
+      global.prepend(this.el, child);
+      return this;
+    }
+
+    remove() {
+      if (!this.el) return this;
+      global.remove(this.el);
+      return this;
+    }
+
+    parent() {
+      if (!this.el) return this;
+      return new DOMWrapper(global.parent(this.el));
+    }
+
+    children() {
+      if (!this.el) return [];
+      return global.children(this.el);
+    }
+
+    next() {
+      if (!this.el) return this;
+      return new DOMWrapper(global.next(this.el));
+    }
+
+    prev() {
+      if (!this.el) return this;
+      return new DOMWrapper(global.prev(this.el));
+    }
+
+    closest(selector) {
+      if (!this.el) return this;
+      return new DOMWrapper(global.closest(this.el, selector));
+    }
+  }
 
 }(window));
