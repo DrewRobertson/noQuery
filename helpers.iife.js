@@ -32,15 +32,16 @@
   ------------------------- */
 
   global.on = (el, event, handler, options) =>
-    el.addEventListener(event, handler, options);
+    unwrap(el).addEventListener(event, handler, options);
 
   global.off = (el, event, handler, options) =>
-    el.removeEventListener(event, handler, options);
+    unwrap(el).removeEventListener(event, handler, options);
 
   global.once = (el, event, handler) =>
-    el.addEventListener(event, handler, { once: true });
+    unwrap(el).addEventListener(event, handler, { once: true });
 
   global.delegate = (parent, selector, event, handler) => {
+    parent = unwrap(parent);
     parent.addEventListener(event, (e) => {
       const target = e.target.closest(selector);
       if (target && parent.contains(target)) {
@@ -55,16 +56,16 @@
   ------------------------- */
 
   global.addClass = (el, ...classes) =>
-    el.classList.add(...classes);
+    unwrap(el).classList.add(...classes);
 
   global.removeClass = (el, ...classes) =>
-    el.classList.remove(...classes);
+    unwrap(el).classList.remove(...classes);
 
   global.toggleClass = (el, className, force) =>
-    el.classList.toggle(className, force);
+    unwrap(el).classList.toggle(className, force);
 
   global.hasClass = (el, className) =>
-    el.classList.contains(className);
+    unwrap(el).classList.contains(className);
 
 
   /* -------------------------
@@ -72,14 +73,16 @@
   ------------------------- */
 
   global.attr = (el, name, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.getAttribute(name);
     el.setAttribute(name, value);
   };
 
   global.removeAttr = (el, name) =>
-    el.removeAttribute(name);
+    unwrap(el).removeAttribute(name);
 
   global.data = (el, key, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.dataset[key];
     el.dataset[key] = value;
   };
@@ -90,16 +93,16 @@
   ------------------------- */
 
   global.css = (el, styles) =>
-    Object.assign(el.style, styles);
+    Object.assign(unwrap(el).style, styles);
 
   global.getStyle = (el, prop) =>
-    getComputedStyle(el)[prop];
+    getComputedStyle(unwrap(el))[prop];
 
   global.show = (el) =>
-    (el.style.display = '');
+    (unwrap(el).style.display = '');
 
   global.hide = (el) =>
-    (el.style.display = 'none');
+    (unwrap(el).style.display = 'none');
 
 
   /* -------------------------
@@ -107,17 +110,19 @@
   ------------------------- */
 
   global.html = (el, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.innerHTML;
     el.innerHTML = value;
   };
 
   global.text = (el, value) => {
+    el = unwrap(el);
     if (value === undefined) return el.textContent;
     el.textContent = value;
   };
 
   global.empty = (el) =>
-    el.replaceChildren();
+    unwrap(el).replaceChildren();
 
 
   /* -------------------------
@@ -125,13 +130,13 @@
   ------------------------- */
 
   global.append = (el, child) =>
-    el.append(child);
+    unwrap(el).append(unwrap(child));
 
   global.prepend = (el, child) =>
-    el.prepend(child);
+    unwrap(el).prepend(unwrap(child));
 
   global.remove = (el) =>
-    el.remove();
+    unwrap(el).remove();
 
   global.create = (tag, options = {}) => {
     const el = document.createElement(tag);
@@ -145,19 +150,19 @@
   ------------------------- */
 
   global.parent = (el) =>
-    el.parentElement;
+    unwrap(el).parentElement;
 
   global.children = (el) =>
-    Array.from(el.children);
+    Array.from(unwrap(el).children);
 
   global.next = (el) =>
-    el.nextElementSibling;
+    unwrap(el).nextElementSibling;
 
   global.prev = (el) =>
-    el.previousElementSibling;
+    unwrap(el).previousElementSibling;
 
   global.closest = (el, selector) =>
-    el.closest(selector);
+    unwrap(el).closest(selector);
 
 
   /* -------------------------
@@ -165,7 +170,7 @@
   ------------------------- */
 
   global.serialize = (form) =>
-    Object.fromEntries(new FormData(form).entries());
+    Object.fromEntries(new FormData(unwrap(form)).entries());
 
 
   /* -------------------------
@@ -195,6 +200,8 @@
   /* -------------------------
      Chainable DOM Wrapper
   ------------------------- */
+
+  const unwrap = (el) => (el instanceof DOMWrapper) ? el.el : el;
 
   class DOMWrapper {
     constructor(el) {

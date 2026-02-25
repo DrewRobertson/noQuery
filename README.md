@@ -44,6 +44,18 @@ const wrapper = $('#my-button');
 console.log(wrapper.el); // HTMLButtonElement
 ```
 
+All standalone helpers also accept a `DOMWrapper` in place of a raw element, so both styles work interchangeably:
+
+```js
+const btn = $('#my-button');
+
+// Chained style
+btn.on('click', () => console.log('clicked'));
+
+// Standalone style — works with a DOMWrapper or a raw element
+on(btn, 'click', () => console.log('clicked'));
+```
+
 ## Helpers
 
 | Helper | Description |

@@ -29,15 +29,16 @@ export const ready = (fn) => {
 ------------------------- */
 
 export const on = (el, event, handler, options) =>
-  el.addEventListener(event, handler, options);
+  unwrap(el).addEventListener(event, handler, options);
 
 export const off = (el, event, handler, options) =>
-  el.removeEventListener(event, handler, options);
+  unwrap(el).removeEventListener(event, handler, options);
 
 export const once = (el, event, handler) =>
-  el.addEventListener(event, handler, { once: true });
+  unwrap(el).addEventListener(event, handler, { once: true });
 
 export const delegate = (parent, selector, event, handler) => {
+  parent = unwrap(parent);
   parent.addEventListener(event, (e) => {
     const target = e.target.closest(selector);
     if (target && parent.contains(target)) {
@@ -52,16 +53,16 @@ export const delegate = (parent, selector, event, handler) => {
 ------------------------- */
 
 export const addClass = (el, ...classes) =>
-  el.classList.add(...classes);
+  unwrap(el).classList.add(...classes);
 
 export const removeClass = (el, ...classes) =>
-  el.classList.remove(...classes);
+  unwrap(el).classList.remove(...classes);
 
 export const toggleClass = (el, className, force) =>
-  el.classList.toggle(className, force);
+  unwrap(el).classList.toggle(className, force);
 
 export const hasClass = (el, className) =>
-  el.classList.contains(className);
+  unwrap(el).classList.contains(className);
 
 
 /* -------------------------
@@ -69,14 +70,16 @@ export const hasClass = (el, className) =>
 ------------------------- */
 
 export const attr = (el, name, value) => {
+  el = unwrap(el);
   if (value === undefined) return el.getAttribute(name);
   el.setAttribute(name, value);
 };
 
 export const removeAttr = (el, name) =>
-  el.removeAttribute(name);
+  unwrap(el).removeAttribute(name);
 
 export const data = (el, key, value) => {
+  el = unwrap(el);
   if (value === undefined) return el.dataset[key];
   el.dataset[key] = value;
 };
@@ -87,16 +90,16 @@ export const data = (el, key, value) => {
 ------------------------- */
 
 export const css = (el, styles) =>
-  Object.assign(el.style, styles);
+  Object.assign(unwrap(el).style, styles);
 
 export const getStyle = (el, prop) =>
-  getComputedStyle(el)[prop];
+  getComputedStyle(unwrap(el))[prop];
 
 export const show = (el) =>
-  (el.style.display = '');
+  (unwrap(el).style.display = '');
 
 export const hide = (el) =>
-  (el.style.display = 'none');
+  (unwrap(el).style.display = 'none');
 
 
 /* -------------------------
@@ -104,17 +107,19 @@ export const hide = (el) =>
 ------------------------- */
 
 export const html = (el, value) => {
+  el = unwrap(el);
   if (value === undefined) return el.innerHTML;
   el.innerHTML = value;
 };
 
 export const text = (el, value) => {
+  el = unwrap(el);
   if (value === undefined) return el.textContent;
   el.textContent = value;
 };
 
 export const empty = (el) =>
-  el.replaceChildren();
+  unwrap(el).replaceChildren();
 
 
 /* -------------------------
@@ -122,13 +127,13 @@ export const empty = (el) =>
 ------------------------- */
 
 export const append = (el, child) =>
-  el.append(child);
+  unwrap(el).append(unwrap(child));
 
 export const prepend = (el, child) =>
-  el.prepend(child);
+  unwrap(el).prepend(unwrap(child));
 
 export const remove = (el) =>
-  el.remove();
+  unwrap(el).remove();
 
 export const create = (tag, options = {}) => {
   const el = document.createElement(tag);
@@ -142,19 +147,19 @@ export const create = (tag, options = {}) => {
 ------------------------- */
 
 export const parent = (el) =>
-  el.parentElement;
+  unwrap(el).parentElement;
 
 export const children = (el) =>
-  Array.from(el.children);
+  Array.from(unwrap(el).children);
 
 export const next = (el) =>
-  el.nextElementSibling;
+  unwrap(el).nextElementSibling;
 
 export const prev = (el) =>
-  el.previousElementSibling;
+  unwrap(el).previousElementSibling;
 
 export const closest = (el, selector) =>
-  el.closest(selector);
+  unwrap(el).closest(selector);
 
 
 /* -------------------------
@@ -162,7 +167,7 @@ export const closest = (el, selector) =>
 ------------------------- */
 
 export const serialize = (form) =>
-  Object.fromEntries(new FormData(form).entries());
+  Object.fromEntries(new FormData(unwrap(form)).entries());
 
 
 /* -------------------------
@@ -192,6 +197,8 @@ export const request = async (url, options = {}) => {
 /* -------------------------
    Chainable DOM Wrapper
 ------------------------- */
+
+const unwrap = (el) => (el instanceof DOMWrapper) ? el.el : el;
 
 export class DOMWrapper {
   constructor(el) {
